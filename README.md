@@ -190,25 +190,3 @@ response:
     "createdAt": "2026-04-05T18:49:42",
     "updatedAt": "2026-04-05T18:55:55.668123"
 }
-
-----
-## Estrutura do Projeto
-
-
-
-cinescore/
-└── src/
-    └── main/
-        ├── java/com/cinescore/
-        │   ├── config/          # Configurações (Security, etc.)
-        │   ├── controller/      # Controladores REST
-        │   ├── dto/             # Objetos de transferência de dados
-        │   ├── model/           # Entidades do banco de dados
-        │   ├── repository/      # Interfaces JPA
-        │   └── service/         # Regras de negócio
-        └── resources/
-            ├── application.properties
-            └── db/migration/    # Scripts Flyway (V1 a V6)
-            
-
----
