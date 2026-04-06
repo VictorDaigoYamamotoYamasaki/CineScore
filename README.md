@@ -1,33 +1,28 @@
-## Configuração
+## Configuração Inicial
 
 1. Crie o banco de dados no MySQL:
 
 CREATE DATABASE cinescore;
 
+2. Baixe o projeto cinescore fazendo o Download do arquivo ZIP
 
-2. Configure as credenciais no arquivo src/main/resources/application.properties:
+3. Suba no Intellij
 
-properties
+
+## Configuração dentro do application.properties
+
+1. Configure as credenciais no arquivo src/main/resources/application.properties:
+
+
 spring.datasource.url=jdbc:mysql://localhost:3306/cinescore
+
 spring.datasource.username=
+
 spring.datasource.password=
-**username e password da maquina local**
-
-3. As tabelas serão criadas automaticamente pelo **Flyway** ao iniciar a aplicação.
-
-## Como rodar
-
-# Clone o repositório
-git clone https://github.com/seu-usuario/CineScore-BackEnd.git
-
-# Entre na pasta do projeto
-cd CineScore-BackEnd/cinescore
-
-# Execute a aplicação
-./mvnw spring-boot:run
 
 
-A API ficará disponível em: http://localhost:8080
+**Verifique o username e password da sua maquina local, vai ser necessário inserir essas informações nos campos vazios**
+
 
 ## Banco de Dados
 
@@ -44,7 +39,7 @@ O projeto usa **Flyway** para gerenciar as migrações do banco. As tabelas são
 
 ---
 
-## Endpoints
+## Endpoints - Instale a Collection CinesCore e importe no Postman para realizar os testes
 
 ### Usuários —  http://localhost:8080/api/users
 
@@ -64,12 +59,6 @@ Key: Content-Type Value:application/json
 
 Exemplo:
 
-GET http://localhost:8080/api/users
-
-----
-
-Exemplo:
-
 POST http://localhost:8080/api/users
 
 Body: 
@@ -82,12 +71,18 @@ Body:
 Response:
 
 {
-    "id": 1,
+    "id": 2,
     "name": "Bruno",
     "email": "bruno@cinescore.com",
     "role": "USER",
     "createdAt": "2026-04-05T18:43:18.180695"
 }
+
+----
+
+Exemplo:
+
+GET http://localhost:8080/api/users
 
 ----
 
@@ -106,7 +101,7 @@ Body:
 Reponse:
 
 {
-    "id": 5,
+    "id": 2,
     "name": "Bruno Messias",
     "email": "brunomessias@cinescore.com",
     "role": "USER",
@@ -136,11 +131,6 @@ Key: Content-Type Value:application/json
 
 ----
 
-Exemplo:
-
-GET http://localhost:8080/api/reviews/user/1
-
-----
 
 Exemplo:
 
@@ -168,6 +158,13 @@ response:
 
 }
 
+
+----
+
+Exemplo:
+
+GET http://localhost:8080/api/reviews/user/1
+
 -----
 Exemplo:
 
@@ -194,11 +191,10 @@ response:
     "updatedAt": "2026-04-05T18:55:55.668123"
 }
 
-
 ----
-
-
 ## Estrutura do Projeto
+
+
 
 cinescore/
 └── src/
@@ -213,5 +209,6 @@ cinescore/
         └── resources/
             ├── application.properties
             └── db/migration/    # Scripts Flyway (V1 a V6)
+            
 
 ---
