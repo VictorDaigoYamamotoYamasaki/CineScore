@@ -2,7 +2,10 @@ package com.cinescore.service;
 
 import com.cinescore.dto.UserRequestDTO;
 import com.cinescore.dto.UserResponseDTO;
+import com.cinescore.exception.DuplicateResourceException;
+import com.cinescore.exception.ResourceNotFoundException;
 import com.cinescore.model.User;
+import com.cinescore.repository.ReviewRepository;
 import com.cinescore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,41 +13,38 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private static final String DELETED_USER_NAME  = "Usuário Deletado";
+    private static final String DELETED_EMAIL_DOMAIN = "@removed.invalid";
+    private static final String DELETED_PASSWORD_HASH = "[REMOVIDO]";
+
+    private final UserRepository   userRepository;
+    private final ReviewRepository reviewRepository;
+    private final PasswordEncoder  passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuário não encontrado com email: " + email));
+                        "Usuário não encontrado com e-mail: " + email));
     }
 
     public UserResponseDTO criar(UserRequestDTO dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("Email já está em uso: " + dto.getEmail());
-        }
-        User user = User.builder()
-                .name(dto.getName())
-                .email(dto.getEmail())
-                .passwordHash(passwordEncoder.encode(dto.getPassword()))
-                .role("USER")
-                .build();
-
+        validateEmailNotInUse(dto.getEmail(), null);
+        User user = buildNewUser(dto);
         return UserResponseDTO.fromUser(userRepository.save(user));
     }
 
-    public UserResponseDTO buscarPorId(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + id));
-        return UserResponseDTO.fromUser(user);
+    public UserResponseDTO buscarPorId(Long userId) {
+        return UserResponseDTO.fromUser(findUserOrThrow(userId));
     }
 
     public List<UserResponseDTO> listarTodos() {
@@ -54,28 +54,76 @@ public class UserService implements UserDetailsService {
                 .toList();
     }
 
-    public UserResponseDTO atualizar(Long id, UserRequestDTO dto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + id));
-
-        if (userRepository.existsByEmailAndIdNot(dto.getEmail(), id)) {
-            throw new RuntimeException("Email já está em uso: " + dto.getEmail());
-        }
+    public UserResponseDTO atualizar(Long userId, UserRequestDTO dto) {
+        User user = findUserOrThrow(userId);
+        validateEmailNotInUse(dto.getEmail(), userId);
 
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
-
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        }
+        atualizarSenhaSeInformada(user, dto.getPassword());
 
         return UserResponseDTO.fromUser(userRepository.save(user));
     }
 
-    public void deletar(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Usuário não encontrado com id: " + id);
+    @Transactional
+    public void deletarConta(Long userId, boolean deletarReviews) {
+        User user = findUserOrThrow(userId);
+
+        if (deletarReviews) {
+            excluirContaComReviews(userId);
+        } else {
+            anonimizarDadosPessoais(user);
         }
-        userRepository.deleteById(id);
+    }
+
+    public void deletar(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("Usuário", userId);
+        }
+        userRepository.deleteById(userId);
+    }
+
+    // ── Helpers privados ──────────────────────────────────────────────────────
+
+    private User findUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", userId));
+    }
+
+    private void validateEmailNotInUse(String email, Long excludeUserId) {
+        boolean emailEmUso = excludeUserId == null
+                ? userRepository.existsByEmail(email)
+                : userRepository.existsByEmailAndIdNot(email, excludeUserId);
+
+        if (emailEmUso) {
+            throw new DuplicateResourceException("Usuário", "e-mail", email);
+        }
+    }
+
+    private User buildNewUser(UserRequestDTO dto) {
+        return User.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .passwordHash(passwordEncoder.encode(dto.getPassword()))
+                .role("USER")
+                .build();
+    }
+
+    private void atualizarSenhaSeInformada(User user, String newPassword) {
+        if (newPassword != null && !newPassword.isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(newPassword));
+        }
+    }
+
+    private void excluirContaComReviews(Long userId) {
+        reviewRepository.deleteByUserId(userId);
+        userRepository.deleteById(userId);
+    }
+
+    private void anonimizarDadosPessoais(User user) {
+        user.setName(DELETED_USER_NAME);
+        user.setEmail("deleted_" + UUID.randomUUID() + DELETED_EMAIL_DOMAIN);
+        user.setPasswordHash(DELETED_PASSWORD_HASH);
+        userRepository.save(user);
     }
 }

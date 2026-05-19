@@ -11,11 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Review {
 
     @Id
@@ -26,8 +22,14 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "movie_imdb_id", nullable = false, length = 20)
-    private String movieImdbId;
+    @Column(name = "movie_id", nullable = false, length = 50)
+    private String movieId;
+
+    @Column(name = "movie_title", length = 255)
+    private String movieTitle;
+
+    @Column(name = "movie_poster", length = 500)
+    private String moviePoster;
 
     @DecimalMin("0.5") @DecimalMax("5.0")
     @Column(nullable = false)

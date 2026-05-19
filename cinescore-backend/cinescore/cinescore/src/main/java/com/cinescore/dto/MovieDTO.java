@@ -4,46 +4,82 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MovieDTO {
 
-    @JsonAlias("imdbID")
-    private String imdbId;
+    @JsonAlias("id")
+    private Long id;
 
-    @JsonAlias("Title")
+    @JsonAlias("title")
     private String title;
 
-    @JsonAlias("Year")
+    @JsonAlias("release_date")
+    private String releaseDate;
+
+    @JsonAlias("overview")
+    private String overview;
+
+    @JsonAlias("poster_path")
+    private String posterPath;
+
+    @JsonAlias("vote_average")
+    private Double voteAverage;
+
+    @JsonAlias("runtime")
+    private Integer runtime;
+
+    @JsonAlias("genres")
+    private List<GenreDTO> genres;
+
+    @JsonAlias("credits")
+    private CreditsDTO credits;
+
+    private String poster;
     private String year;
-
-    @JsonAlias("Genre")
     private String genre;
-
-    @JsonAlias("Director")
     private String director;
-
-    @JsonAlias("Actors")
     private String actors;
 
-    @JsonAlias("Plot")
-    private String plot;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GenreDTO {
+        @JsonAlias("id")
+        private Long id;
 
-    @JsonAlias("Poster")
-    private String poster;
+        @JsonAlias("name")
+        private String name;
+    }
 
-    @JsonAlias("imdbRating")
-    private String imdbRating;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CreditsDTO {
+        @JsonAlias("cast")
+        private List<PersonDTO> cast;
 
-    @JsonAlias("Runtime")
-    private String runtime;
+        @JsonAlias("crew")
+        private List<CrewDTO> crew;
+    }
 
-    @JsonAlias("Rated")
-    private String rated;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PersonDTO {
+        @JsonAlias("id")
+        private Long id;
 
-    @JsonAlias("Response")
-    private String response;
+        @JsonAlias("name")
+        private String name;
+    }
 
-    @JsonAlias("Error")
-    private String error;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CrewDTO {
+        @JsonAlias("name")
+        private String name;
+
+        @JsonAlias("job")
+        private String job;
+    }
 }

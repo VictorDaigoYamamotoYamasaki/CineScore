@@ -23,7 +23,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    private SecretKey getSigningKey() {
+    private SecretKey buildSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -60,7 +60,7 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(buildSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

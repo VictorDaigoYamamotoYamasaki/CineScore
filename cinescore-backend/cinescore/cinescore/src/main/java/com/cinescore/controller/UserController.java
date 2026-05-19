@@ -2,6 +2,7 @@ package com.cinescore.controller;
 
 import com.cinescore.dto.UserRequestDTO;
 import com.cinescore.dto.UserResponseDTO;
+import com.cinescore.repository.UserRepository;
 import com.cinescore.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserService    userService;
+    private final UserRepository userRepository;
+
+    // Busca pública de perfis por nome (navbar)
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponseDTO>> buscarPorNome(@RequestParam String name) {
+        List<UserResponseDTO> results = userRepository
+                .findByNameContainingIgnoreCaseOrderByNameAsc(name)
+                .stream()
+                .map(UserResponseDTO::fromUser)
+                .toList();
+        return ResponseEntity.ok(results);
+    }
 
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> listar() {

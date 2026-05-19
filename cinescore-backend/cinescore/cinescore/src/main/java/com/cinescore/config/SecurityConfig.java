@@ -45,11 +45,21 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/api/movies/**").authenticated()
 
+                .requestMatchers(HttpMethod.GET,    "/api/users/search").authenticated()
                 .requestMatchers(HttpMethod.GET,    "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST,   "/api/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/profile/me").authenticated()
+                .requestMatchers("/api/profile/**").authenticated()
+                .requestMatchers("/api/follow/**").authenticated()
+                .requestMatchers("/api/recommendations/**").authenticated()
+                .requestMatchers("/api/movies/trending").authenticated()
+                .requestMatchers("/api/reviews/*/comments").authenticated()
+                .requestMatchers("/api/reviews/*/reactions").authenticated()
+                .requestMatchers("/api/reviews/*/summary").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session ->

@@ -11,7 +11,9 @@ public class ReviewResponseDTO {
     private Long id;
     private Long userId;
     private String userName;
-    private String movieImdbId;
+    private String movieId;
+    private String movieTitle;
+    private String moviePoster;
     private Double rating;
     private String reviewText;
     private LocalDateTime createdAt;
@@ -22,7 +24,9 @@ public class ReviewResponseDTO {
         dto.setId(review.getId());
         dto.setUserId(review.getUser().getId());
         dto.setUserName(review.getUser().getName());
-        dto.setMovieImdbId(review.getMovieImdbId());
+        dto.setMovieId(review.getMovieId());
+        dto.setMovieTitle(review.getMovieTitle());
+        dto.setMoviePoster(review.getMoviePoster());
         dto.setRating(review.getRating());
         dto.setReviewText(review.getReviewText());
         dto.setCreatedAt(review.getCreatedAt());

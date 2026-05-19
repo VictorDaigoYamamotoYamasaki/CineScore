@@ -8,18 +8,18 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MovieSearchItemDTO {
 
-    @JsonAlias("imdbID")
-    private String imdbId;
+    @JsonAlias("id")
+    private Long id;
 
-    @JsonAlias("Title")
+    @JsonAlias("title")
     private String title;
 
-    @JsonAlias("Year")
-    private String year;
+    @JsonAlias("release_date")
+    private String releaseDate;
 
-    @JsonAlias("Type")
-    private String type;
+    @JsonAlias("poster_path")
+    private String posterPath;
 
-    @JsonAlias("Poster")
     private String poster;
+    private String year;
 }
