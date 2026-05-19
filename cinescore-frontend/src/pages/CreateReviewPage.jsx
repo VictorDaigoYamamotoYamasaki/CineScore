@@ -18,12 +18,12 @@ export default function CreateReviewPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const imdbId = params.get('imdbId')
-    const title  = params.get('title')
-    const poster = params.get('poster')
-    const year   = params.get('year')
-    if (imdbId && title) {
-      setMovie({ imdbId, title, poster: poster || null, year: year || '' })
+    const movieId = params.get('movieId')
+    const title   = params.get('title')
+    const poster  = params.get('poster')
+    const year    = params.get('year')
+    if (movieId && title) {
+      setMovie({ id: movieId, title, poster: poster || null, year: year || '' })
     }
   }, [])
 
@@ -35,19 +35,21 @@ export default function CreateReviewPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError(''); setSuccess('')
-    if (!movie)      { setError('Selecione um filme.'); return }
+    if (!movie)       { setError('Selecione um filme.'); return }
     if (rating === 0) { setError('Selecione uma nota de 1 a 5 estrelas.'); return }
     if (!text.trim()) { setError('Escreva um comentário.'); return }
 
     setLoading(true)
     try {
-      await reviewService.criar(movie.imdbId, rating, text)
+      await reviewService.criar(String(movie.id), rating, text, movie.title || '', movie.poster || '')
       setSuccess('Review publicada com sucesso!')
       setRating(0); setText('')
-      setTimeout(() => navigate(`/movies/${movie.imdbId}`), 1200)
+      setTimeout(() => navigate(`/movies/${movie.id}`), 1200)
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao publicar review.')
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (!user) { navigate('/login'); return null }
@@ -58,9 +60,8 @@ export default function CreateReviewPage() {
       <div className="page-main">
         <div className="container--narrow">
           <div className="form-card">
-
             <div className="logo" style={{marginBottom:'1.5rem'}}>
-              <div className="logo-title" style={{fontSize:'1.3rem'}}>
+              <div className="logo-title">
                 Cine<span style={{color:'var(--purple-bright)'}}>Score</span>
               </div>
               <div className="logo-tagline">Registrar avaliação</div>
@@ -70,8 +71,6 @@ export default function CreateReviewPage() {
             {success && <div className="msg msg--success">✓ {success}</div>}
 
             <form onSubmit={handleSubmit} noValidate>
-
-              {}
               <div className="form-group">
                 <label>Filme</label>
                 {movie ? (
@@ -82,13 +81,12 @@ export default function CreateReviewPage() {
                     }
                     <div className="movie-selected-info">
                       <div className="movie-selected-title">{movie.title}</div>
-                      <div className="movie-selected-meta">{movie.year} · {movie.imdbId}</div>
+                      <div className="movie-selected-meta">{movie.year} · ID: {movie.id}</div>
                     </div>
                     <button
                       type="button"
                       className="movie-selected-clear"
                       onClick={() => setMovie(null)}
-                      aria-label="Remover filme selecionado"
                     >✕</button>
                   </div>
                 ) : (
@@ -96,13 +94,11 @@ export default function CreateReviewPage() {
                 )}
               </div>
 
-              {}
               <div className="form-group">
                 <label>Nota</label>
                 <StarRating value={rating} onChange={setRating} size="md" />
               </div>
 
-              {}
               <div className="form-group">
                 <label>Comentário</label>
                 <textarea
@@ -126,7 +122,6 @@ export default function CreateReviewPage() {
                 ← Voltar ao início
               </button>
             </div>
-
           </div>
         </div>
       </div>

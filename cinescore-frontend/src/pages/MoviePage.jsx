@@ -14,34 +14,33 @@ function initials(name = '') {
 }
 
 export default function MoviePage() {
-  const { imdbId } = useParams()
-  const navigate   = useNavigate()
-  const user       = sessionHelper.get()
+  const { movieId } = useParams()
+  const navigate    = useNavigate()
+  const user        = sessionHelper.get()
 
   const [movie,   setMovie]   = useState(null)
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const [editingId,   setEditingId]   = useState(null)
-  const [editRating,  setEditRating]  = useState(0)
-  const [editText,    setEditText]    = useState('')
-  const [editLoading, setEditLoading] = useState(false)
-  const [editError,   setEditError]   = useState('')
-
-  const [deletingId,   setDeletingId]   = useState(null)
+  const [editingId,     setEditingId]     = useState(null)
+  const [editRating,    setEditRating]    = useState(0)
+  const [editText,      setEditText]      = useState('')
+  const [editLoading,   setEditLoading]   = useState(false)
+  const [editError,     setEditError]     = useState('')
+  const [deletingId,    setDeletingId]    = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
 
     Promise.all([
-      movieService.buscarPorId(imdbId),
-      reviewService.listarPorFilme(imdbId),
+      movieService.buscarPorId(movieId),
+      reviewService.listarPorFilme(movieId),
     ])
       .then(([m, r]) => { setMovie(m.data); setReviews(r.data) })
-      .catch(() => navigate('/home'))
+      .catch((err) => { console.error('Erro ao carregar filme:', err) })
       .finally(() => setLoading(false))
-  }, [imdbId])
+  }, [movieId])
 
   const avg = reviews.length > 0
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
@@ -64,12 +63,10 @@ export default function MoviePage() {
   async function handleEditSave(reviewId) {
     if (editRating === 0) { setEditError('Selecione uma nota.'); return }
     if (!editText.trim()) { setEditError('Escreva um comentário.'); return }
-
     setEditLoading(true)
     setEditError('')
     try {
       const { data } = await reviewService.editar(reviewId, editRating, editText)
-
       setReviews(prev => prev.map(r => r.id === reviewId ? data : r))
       setEditingId(null)
     } catch (err) {
@@ -83,7 +80,6 @@ export default function MoviePage() {
     setDeleteLoading(true)
     try {
       await reviewService.deletar(reviewId)
-
       setReviews(prev => prev.filter(r => r.id !== reviewId))
       setDeletingId(null)
     } catch (err) {
@@ -107,11 +103,10 @@ export default function MoviePage() {
       <Navbar user={user} />
       <div className="page-main">
 
-        {}
         <div className="movie-hero">
           <div className="container">
             <div className="movie-hero-inner">
-              {movie?.poster && movie.poster !== 'N/A' && (
+              {movie?.poster && (
                 <img src={movie.poster} alt={movie.title} className="movie-poster" />
               )}
               <div>
@@ -119,8 +114,8 @@ export default function MoviePage() {
                 <div className="movie-info-meta">
                   <span>{movie?.year}</span>
                   <span>{movie?.genre}</span>
-                  <span>{movie?.runtime}</span>
-                  {movie?.director && movie.director !== 'N/A' && <span>Dir. {movie.director}</span>}
+                  {movie?.runtime && <span>{movie.runtime} min</span>}
+                  {movie?.director && <span>Dir. {movie.director}</span>}
                 </div>
 
                 {avg && (
@@ -133,14 +128,20 @@ export default function MoviePage() {
                   </div>
                 )}
 
-                {movie?.plot && movie.plot !== 'N/A' && (
-                  <p className="movie-plot">{movie.plot}</p>
+                {movie?.overview && (
+                  <p className="movie-plot">{movie.overview}</p>
+                )}
+
+                {movie?.actors && (
+                  <p style={{fontSize:'0.8rem', color:'var(--text-muted)', marginTop:'0.5rem'}}>
+                    {movie.actors}
+                  </p>
                 )}
 
                 <div style={{ marginTop: '1.2rem' }}>
                   <button
                     className="btn btn--green btn--sm"
-                    onClick={() => navigate(`/reviews/new?imdbId=${imdbId}&title=${encodeURIComponent(movie?.title || '')}&poster=${encodeURIComponent(movie?.poster || '')}&year=${movie?.year || ''}`)}
+                    onClick={() => navigate(`/reviews/new?movieId=${movieId}&title=${encodeURIComponent(movie?.title || '')}&poster=${encodeURIComponent(movie?.poster || '')}&year=${movie?.year || ''}`)}
                   >
                     ★ Avaliar este filme
                   </button>
@@ -150,7 +151,6 @@ export default function MoviePage() {
           </div>
         </div>
 
-        {}
         <div className="container">
           <div className="timeline">
             <div className="feed-header">
@@ -167,7 +167,7 @@ export default function MoviePage() {
                 <button
                   className="btn btn--primary btn--sm"
                   style={{marginTop:'1rem'}}
-                  onClick={() => navigate(`/reviews/new?imdbId=${imdbId}`)}
+                  onClick={() => navigate(`/reviews/new?movieId=${movieId}`)}
                 >
                   Seja o primeiro a avaliar
                 </button>
@@ -184,45 +184,27 @@ export default function MoviePage() {
                   <div className="timeline-line">
                     <div className="timeline-dot" />
                   </div>
-
                   <div className="timeline-content" style={{flex:1}}>
-
-                    {}
                     <div className="timeline-meta">
-                      <div className="avatar" style={{width:26,height:26,fontSize:'0.68rem'}}>
+                      <div className="avatar" style={{width:26,height:26,fontSize:'0.68rem',cursor:'pointer'}} onClick={() => navigate(`/profile/${review.userId}`)} title="Ver perfil">
                         {initials(review.userName)}
                       </div>
-                      <span className="timeline-user">{review.userName}</span>
+                      <span className="timeline-user" style={{cursor:'pointer'}} onClick={() => navigate(`/profile/${review.userId}`)} title="Ver perfil">{review.userName}</span>
                       <StarDisplay value={review.rating} size="sm" />
                       <span className="timeline-date">{formatDate(review.createdAt)}</span>
 
-                      {}
                       {isOwner && !isEditing && !isDeleting && (
                         <div className="review-actions">
-                          <button
-                            className="review-action-btn"
-                            onClick={() => handleEditOpen(review)}
-                            title="Editar review"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="review-action-btn review-action-btn--delete"
-                            onClick={() => setDeletingId(review.id)}
-                            title="Excluir review"
-                          >
-                            🗑️
-                          </button>
+                          <button className="review-action-btn" onClick={() => handleEditOpen(review)} title="Editar">✏️</button>
+                          <button className="review-action-btn review-action-btn--delete" onClick={() => setDeletingId(review.id)} title="Excluir">🗑️</button>
                         </div>
                       )}
                     </div>
 
-                    {}
                     {!isEditing && !isDeleting && review.reviewText && (
                       <p className="timeline-text">{review.reviewText}</p>
                     )}
 
-                    {}
                     {isEditing && (
                       <div className="review-edit-form">
                         {editError && <div className="msg msg--error" style={{marginBottom:'0.6rem'}}>{editError}</div>}
@@ -232,63 +214,34 @@ export default function MoviePage() {
                         </div>
                         <div style={{marginBottom:'0.75rem'}}>
                           <label style={{fontSize:'0.72rem', color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.1em', display:'block', marginBottom:'0.35rem'}}>Comentário</label>
-                          <textarea
-                            value={editText}
-                            onChange={e => { setEditText(e.target.value); setEditError('') }}
-                            rows={3}
-                            style={{minHeight:'70px'}}
-                          />
+                          <textarea value={editText} onChange={e => { setEditText(e.target.value); setEditError('') }} rows={3} style={{minHeight:'70px'}} />
                         </div>
                         <div className="review-edit-actions">
-                          <button
-                            className="btn btn--primary btn--sm"
-                            onClick={() => handleEditSave(review.id)}
-                            disabled={editLoading}
-                          >
+                          <button className="btn btn--primary btn--sm" onClick={() => handleEditSave(review.id)} disabled={editLoading}>
                             {editLoading ? <span className="spinner" /> : 'Salvar'}
                           </button>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={handleEditCancel}
-                            disabled={editLoading}
-                          >
-                            Cancelar
-                          </button>
+                          <button className="btn btn--ghost btn--sm" onClick={handleEditCancel} disabled={editLoading}>Cancelar</button>
                         </div>
                       </div>
                     )}
 
-                    {}
                     {isDeleting && (
                       <div className="review-delete-confirm">
                         <p>Tem certeza que deseja excluir esta review?</p>
                         <div className="review-edit-actions">
-                          <button
-                            className="btn btn--sm"
-                            style={{background:'var(--red)', color:'#fff'}}
-                            onClick={() => handleDelete(review.id)}
-                            disabled={deleteLoading}
-                          >
+                          <button className="btn btn--sm" style={{background:'var(--red)', color:'#fff'}} onClick={() => handleDelete(review.id)} disabled={deleteLoading}>
                             {deleteLoading ? <span className="spinner" /> : 'Excluir'}
                           </button>
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setDeletingId(null)}
-                            disabled={deleteLoading}
-                          >
-                            Cancelar
-                          </button>
+                          <button className="btn btn--ghost btn--sm" onClick={() => setDeletingId(null)} disabled={deleteLoading}>Cancelar</button>
                         </div>
                       </div>
                     )}
-
                   </div>
                 </div>
               )
             })}
           </div>
         </div>
-
       </div>
     </>
   )

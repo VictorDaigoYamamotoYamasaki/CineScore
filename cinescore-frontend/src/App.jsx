@@ -5,6 +5,11 @@ import RegisterPage     from './pages/RegisterPage'
 import HomePage         from './pages/HomePage'
 import MoviePage        from './pages/MoviePage'
 import CreateReviewPage from './pages/CreateReviewPage'
+import AdminPage        from './pages/AdminPage'
+import ActorPage        from './pages/ActorPage'
+import ProfilePage      from './pages/ProfilePage'
+import FollowersPage       from './pages/FollowersPage'
+import RecommendationPage  from './pages/RecommendationPage'
 
 function ProtectedRoute({ children }) {
   return sessionHelper.isLogged() ? children : <Navigate to="/login" replace />
@@ -20,14 +25,18 @@ export default function App() {
             : <Navigate to="/login" replace />
         } />
 
-        {}
         <Route path="/login"    element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {}
-        <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-        <Route path="/movies/:imdbId" element={<ProtectedRoute><MoviePage /></ProtectedRoute>} />
-        <Route path="/reviews/new"    element={<ProtectedRoute><CreateReviewPage /></ProtectedRoute>} />
+        <Route path="/home"            element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+        <Route path="/movies/:movieId" element={<ProtectedRoute><MoviePage /></ProtectedRoute>} />
+        <Route path="/reviews/new"     element={<ProtectedRoute><CreateReviewPage /></ProtectedRoute>} />
+        <Route path="/actors/:actorId" element={<ProtectedRoute><ActorPage /></ProtectedRoute>} />
+        <Route path="/profile"         element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/profile/:userId" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/profile/:userId/network" element={<ProtectedRoute><FollowersPage /></ProtectedRoute>} />
+        <Route path="/recommendations" element={<ProtectedRoute><RecommendationPage /></ProtectedRoute>} />
+        <Route path="/admin"           element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
