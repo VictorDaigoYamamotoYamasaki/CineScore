@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/cinescore
+    username: root
+    password: SUA_SENHA_MYSQL
+
+  mail:
+    username: SEU_EMAIL@gmail.com
+    password: SUA_SENHA_DE_APP_GMAIL_16_DIGITOS
+
+tmdb:
+  api:
+    key: SUA_CHAVE_TMDB
+
+jwt:
+  secret: SUA_CHAVE_SECRETA_JWT
+
+app:
+  url: http://localhost:5173
